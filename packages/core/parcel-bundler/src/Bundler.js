@@ -313,15 +313,10 @@ class Bundler extends EventEmitter {
         asset.replaceBundleNames(this.bundleNameMap);
       }
 
-      // Emit an HMR update if this is not the initial bundle.
-      let bundlesChanged = numBundles !== this.bundleNameMap.size;
-      if (this.hmr && !isInitialBundle) {
-        this.hmr.emitUpdate(changedAssets, bundlesChanged);
-      }
-
       logger.progress(`Packaging...`);
 
       // Package everything up
+      let bundlesChanged = numBundles !== this.bundleNameMap.size;
       this.bundleHashes = await this.mainBundle.package(
         this,
         bundlesChanged ? null : this.bundleHashes
@@ -335,6 +330,11 @@ class Bundler extends EventEmitter {
       logger.success(`Built in ${time}.`);
       if (!this.watcher) {
         bundleReport(this.mainBundle, this.options.detailedReport);
+      }
+
+      // Emit an HMR update if this is not the initial bundle.
+      if (this.hmr && !isInitialBundle) {
+        this.hmr.emitUpdate(changedAssets, bundlesChanged);
       }
 
       this.emit('bundled', this.mainBundle);
